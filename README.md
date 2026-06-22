@@ -6,7 +6,6 @@
 
 [![Course Project](https://img.shields.io/badge/Course-Causal%20Inference-blue)]()
 [![Paper](https://img.shields.io/badge/Paper-RATE%20\(ICML%202025\)-green)]()
-[![Status](https://img.shields.io/badge/Status-In%20Progress-orange)]()
 
 ---
 
