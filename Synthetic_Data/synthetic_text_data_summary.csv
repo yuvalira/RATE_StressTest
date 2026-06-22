@@ -1,0 +1,7 @@
+filename,n,typo_level,target_attribute,W_definition,off_target_attribute,typos_added_to,true_effect_expected
+imdb_vowel_typos_level_0.00.csv,3000,0.0,starts_with_vowel,"1 if review starts with a vowel, 0 otherwise",typos,W=1 only,approximately zero
+imdb_vowel_typos_level_0.05.csv,3000,0.05,starts_with_vowel,"1 if review starts with a vowel, 0 otherwise",typos,W=1 only,approximately zero
+imdb_vowel_typos_level_0.10.csv,3000,0.1,starts_with_vowel,"1 if review starts with a vowel, 0 otherwise",typos,W=1 only,approximately zero
+imdb_vowel_typos_level_0.20.csv,3000,0.2,starts_with_vowel,"1 if review starts with a vowel, 0 otherwise",typos,W=1 only,approximately zero
+imdb_vowel_typos_level_0.30.csv,3000,0.3,starts_with_vowel,"1 if review starts with a vowel, 0 otherwise",typos,W=1 only,approximately zero
+imdb_vowel_typos_level_0.40.csv,3000,0.4,starts_with_vowel,"1 if review starts with a vowel, 0 otherwise",typos,W=1 only,approximately zero
