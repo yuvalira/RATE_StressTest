@@ -152,8 +152,9 @@ Our goal is to identify the conditions under which the double-rewrite cancellati
 
 ## Authors
 
-**Yuval Ratzabi**
-**Tuvia Hausdorff**
+Yuval Ratzabi
+
+Tuvia Hausdorff
 
 Final Project — *Causal Inference in the AI Era*
 
