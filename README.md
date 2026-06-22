@@ -1,7 +1,5 @@
 # RATE_StressTest
 
-# RATE Stress Test
-
 > **Empirical Evaluation of the Assumptions Behind RATE: Causal Explainability of Reward Models with Imperfect Counterfactuals**
 
 [![Course Project](https://img.shields.io/badge/Course-Causal%20Inference-blue)]()
@@ -69,13 +67,13 @@ Our primary stress test targets **Assumption 1**.
 
 We create a controlled synthetic environment where:
 
-✅ The true causal effect is known
+1. The true causal effect is known
 
-✅ Confounding strength can be controlled
+2. Confounding strength can be controlled
 
-✅ Rewrite quality can be manipulated
+3. Rewrite quality can be manipulated
 
-✅ Multiple random seeds can be evaluated
+4. Multiple random seeds can be evaluated
 
 For each setting we compare:
 
