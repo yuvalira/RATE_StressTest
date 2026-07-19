@@ -248,7 +248,7 @@ python report/build_pdf.py
 
 ## Authors
 
-**Yuval Ratzabi**  
 **Tuvia Hausdorff**
+**Yuval Ratzabi**  
 
 Final Project — *Causal Inference in the AI Era*
