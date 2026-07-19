@@ -1,9 +1,9 @@
-# RATE_StressTest
+# RATE Stress Test
 
 > **Empirical Evaluation of the Assumptions Behind RATE: Causal Explainability of Reward Models with Imperfect Counterfactuals**
 
 [![Course Project](https://img.shields.io/badge/Course-Causal%20Inference-blue)]()
-[![Paper](https://img.shields.io/badge/Paper-RATE%20\(ICML%202025\)-green)]()
+[![Paper](https://img.shields.io/badge/Paper-RATE%20(ICML%202025)-green)](https://arxiv.org/abs/2410.11348)
 
 ---
 
@@ -11,75 +11,86 @@
 
 This repository contains the empirical study for our final project in **Causal Inference in the AI Era**.
 
-We investigate the robustness of **RATE (Rewrite-based Attribute Treatment Estimators)**, a causal framework proposed for understanding what reward models actually reward.
+We investigate the robustness of **RATE (Rewrite-based Attribute Treatment Estimator)**, a causal framework for measuring how textual attributes causally affect reward-model scores.
 
-Rather than reproducing the paper's main experiments, we focus on a key theoretical assumption and examine when the method begins to fail.
+The project includes a qualitative replication of the paper's confounding experiment and a novel stress test of its direction-independent rewrite-error assumption.
 
 ---
 
 ## Paper
 
-**RATE: Causal Explainability of Reward Models with Imperfect Counterfactuals**
+**Title:** RATE: Causal Explainability of Reward Models with Imperfect Counterfactuals
 
-**Authors:** David Reber, Sean M. Richardson, Todd Nief, Cristina Garbacea, Victor Veitch
+**Authors:** David Reber, Sean M. Richardson, Todd Nief, Cristina Garbacea, and Victor Veitch
 
-**Venue:** ICML 2025 (PMLR 267)
+**Venue:** ICML 2025, PMLR 267
 
-**Paper:** https://arxiv.org/abs/2410.13844
+**Paper:** https://arxiv.org/abs/2410.11348
 
-**Code:** https://github.com/toddnief/RATE
+**Original code:** https://github.com/toddnief/RATE
 
 ---
 
 ## Research Question
 
-RATE relies on a double-rewrite procedure:
+RATE uses a double-rewrite procedure:
 
 ```text
 Original → Rewrite → Rewrite of Rewrite
 ```
 
-The method's validity theorem (Theorem 4.1 in the paper) rests on an assumption that off-target rewrite errors are drawn from a distribution that does not depend on rewrite direction (Assumption 1).
+Its validity theorem assumes that off-target rewrite errors follow a distribution that does not depend on rewrite direction.
 
 Our central question is:
 
-> How does RATE behave when this direction-symmetry assumption is violated, and is this violation distinguishable from the confounding problem RATE was designed to solve?
+> How does RATE behave when this direction-independence assumption is violated, and is this failure mode distinct from the confounding problem RATE was designed to solve?
 
 ---
 
-## Motivation
+## Key Assumptions
 
-The original paper shows that RATE can successfully recover causal effects under confounding between an off-target attribute (typos) and the attribute of interest, as long as the LLM rewriter corrects the off-target attribute the same way regardless of which direction it is rewriting. Their own experiments never vary that direction-symmetry itself — it holds by construction, because their real rewriter (GPT-4o) happens to correct typos "no matter what."
+### Assumption 1 — Direction-Independent Rewrite Errors
 
-This project asks what happens when that assumption is dropped, using two experiments with known ground truth:
-
-### Assumption 1 — Symmetric Rewrite Errors
-
-Off-target changes introduced during rewriting should not depend on rewrite direction.
+Off-target changes introduced during rewriting should follow the same distribution in both rewrite directions.
 
 ### Assumption 2 — Additive Reward Components
 
-The effect of the target attribute should be separable from the effect of rewrite-induced changes.
+The reward contribution of the target and immutable attributes should be separable from the contribution of rewrite-induced changes.
 
-Our experiments target **Assumption 1** directly; Assumption 2 is held to hold by construction (our synthetic reward is additive) so that any bias we observe can be attributed to Assumption 1 alone.
+Our experiments directly test **Assumption 1** while satisfying Assumption 2 by construction through an additive synthetic reward function.
 
 ---
 
 ## Experimental Design
 
-Two experiments, both with known ground-truth ATE so bias/variance/RMSE can be computed exactly:
+Both experiments use a known ground-truth ATE, allowing us to calculate bias, variance, and RMSE exactly.
 
-**Experiment A — baseline replication.** Reuses the existing IMDB vowel/typo datasets (`Synthetic_Data/`) to reproduce the paper's own confounding-strength sweep (their Fig. 3). This is a sanity check: it confirms our estimator implementation reproduces known behavior (Naive and Single-rewrite biased and growing with confound strength, RATE flat near the true effect) before trusting it on anything new.
+### Experiment A — Qualitative Replication and Sanity Check
 
-**Experiment B — the stress test.** A fully synthetic simulation (no text) with two independent knobs: confounding strength between an off-target flag and the attribute of interest (the paper's own knob), and an asymmetry parameter `Δ = p01 − p10` controlling how much the simulated rewriter's off-target error rate depends on rewrite direction (the untested knob). Both are swept independently, with many random seeds per grid point.
+We use 3,000 IMDB reviews: 1,500 beginning with a vowel and 1,500 not. Typos are introduced only into the vowel-starting group at six levels:
 
-For each setting we compare:
+```text
+0.00, 0.05, 0.10, 0.20, 0.30, 0.40
+```
 
-| Estimator      | Description                |
-| -------------- | --------------------------- |
-| Naive          | Observational comparison   |
-| Single Rewrite | One counterfactual rewrite |
-| RATE           | Double-rewrite estimator   |
+The rewrite and round-trip rewrite are simulated as direction-symmetric. This experiment verifies the expected qualitative behavior: as confounding increases, the naive and single-rewrite estimators become more biased while RATE remains stable.
+
+### Experiment B — Direction-Asymmetry Stress Test
+
+We use a fully synthetic simulation with two independently controlled parameters:
+
+- `confound_strength`: association between the original off-target typo flag and treatment \(W\).
+- `Δ = p01 − p10`: difference between off-target error probabilities in the two rewrite directions.
+
+The average rewrite-error rate is held fixed while `Δ` changes. This separates sensitivity to observational confounding from sensitivity to rewrite-direction asymmetry.
+
+For each setting, we compare:
+
+| Estimator | Description |
+|---|---|
+| Naive | Difference between observed treatment groups |
+| Single Rewrite | Comparison between each original and its rewrite |
+| RATE | Comparison between the rewrite and rewrite-of-the-rewrite |
 
 ---
 
@@ -89,15 +100,15 @@ For each setting we compare:
 
 As confounding becomes stronger:
 
-* Naive estimates become increasingly biased.
-* RATE remains relatively stable.
+- The naive estimator becomes increasingly biased.
+- RATE remains stable when rewrite symmetry holds.
 
-### H2 — Breaking Symmetry
+### H2 — Breaking Direction Symmetry
 
 As rewrite errors become more direction-dependent:
 
-* RATE's bias increases.
-* The double-rewrite correction becomes less effective, independent of confounding strength.
+- RATE's bias increases.
+- This effect occurs independently of confounding strength.
 
 ---
 
@@ -107,23 +118,34 @@ As rewrite errors become more direction-dependent:
 RATE_StressTest/
 │
 ├── Synthetic_Data/
-│   ├── RATE_Dataset_Generation.ipynb        # generates the IMDB vowel/typo datasets used by Experiment A
-│   ├── datasets_by_typo_level/*.csv
+│   ├── RATE_Dataset_Generation.ipynb
+│   ├── datasets_by_typo_level/
 │   └── synthetic_text_data_summary.csv
 │
 ├── notebooks/
-│   └── rate_stress_test.ipynb               # runs both experiments end to end
+│   └── rate_stress_test.ipynb
 │
 ├── src/
-│   ├── reward.py                            # synthetic reward function, known ground-truth ATE
-│   ├── simulation.py                        # data generators for Experiments A and B
-│   ├── estimators.py                        # naive / single-rewrite / RATE estimators
-│   ├── metrics.py                           # bias / variance / RMSE, sweep runner
-│   └── plotting.py                          # figures for both experiments
+│   ├── reward.py
+│   ├── simulation.py
+│   ├── estimators.py
+│   ├── metrics.py
+│   └── plotting.py
 │
 ├── results/
 │   ├── figures/
+│   │   ├── experiment_a_replication.png
+│   │   ├── experiment_b_headline.png
+│   │   └── potential_outcomes_diagram.png
 │   └── tables/
+│       ├── experiment_a_results.csv
+│       └── experiment_b_results.csv
+│
+├── report/
+│   ├── report.md
+│   ├── report.pdf
+│   ├── build_diagram.py
+│   └── build_pdf.py
 │
 ├── requirements.txt
 ├── requirements-report.txt
@@ -134,59 +156,99 @@ RATE_StressTest/
 
 ## Setup
 
-Requires Python 3.11+.
+The project requires Python 3.11 or later.
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate      # on Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
-python -m ipykernel install --user --name rate_stresstest --display-name "RATE StressTest"
+python -m ipykernel install --user \
+  --name rate_stresstest \
+  --display-name "RATE StressTest"
 ```
 
-## Running the experiments
+On Windows, activate the environment with:
 
-Open `notebooks/rate_stress_test.ipynb` (select the `RATE StressTest` kernel) and run all cells. This will:
+```text
+.venv\Scripts\activate
+```
 
-1. Hand-verify the three estimators against a toy example.
-2. Run Experiment A and save `results/tables/experiment_a_results.csv` and `results/figures/experiment_a_replication.png`.
-3. Run Experiment B and save `results/tables/experiment_b_results.csv` and `results/figures/experiment_b_headline.png`.
+---
+
+## Running the Experiments
+
+Open `notebooks/rate_stress_test.ipynb`, select the **RATE StressTest** kernel, and run all cells.
+
+The notebook will:
+
+1. Verify the three estimators using a small toy example.
+2. Run Experiment A and save its result table and figure.
+3. Run Experiment B and save its result table and figure.
 
 ---
 
 ## Evaluation Metrics
 
-For every experiment we report, across many random seeds per setting:
+For every experimental setting, estimates are aggregated across multiple random seeds. We report:
 
-* Mean estimate and Bias against the known true ATE
-* Variance
-* Root Mean Squared Error (RMSE)
+- Mean ATE estimate
+- Bias against the true ATE
+- Variance
+- Root Mean Squared Error (RMSE)
+
+Experiment A uses 200 random seeds. Experiment B uses 300 random seeds and 2,000 simulated units per seed.
+
+---
+
+## Results
+
+### Experiment A
+
+The naive and single-rewrite estimators become increasingly biased as typo confounding grows, whereas RATE remains stable near the true ATE.
+
+![Experiment A](results/figures/experiment_a_replication.png)
+
+### Experiment B
+
+RATE is unaffected by confounding strength but becomes increasingly biased as rewrite-direction asymmetry grows. Its bias changes approximately linearly with \(\Delta\), matching the theoretical prediction from the synthetic reward function.
+
+The naive estimator shows the opposite behavior: it is sensitive to confounding but unaffected by rewrite asymmetry. The single-rewrite estimator is sensitive to both.
+
+![Experiment B](results/figures/experiment_b_headline.png)
+
+| Estimator | Sensitive to confounding? | Sensitive to direction asymmetry? |
+|---|---:|---:|
+| Naive | Yes | No |
+| Single Rewrite | Yes | Yes |
+| RATE | No | Yes |
+
+---
+
+## Main Conclusion
+
+RATE successfully addresses confounding in the observed data when its assumptions hold. However, it is sensitive to direction-dependent rewrite errors. This represents a distinct failure mode from observational confounding and shows that RATE's reliability depends on the behavior of the selected LLM rewriter and rewrite instruction.
+
+Our simulation quantifies RATE's sensitivity to this violation. It does not claim that any particular level of asymmetry occurs in GPT-4o or another real rewriter.
 
 ---
 
 ## Report
 
-The written report is at `report/report.md`, rendered to `report/report.pdf`. To rebuild it after editing:
+The written report is available at [`report/report.pdf`](report/report.pdf).
+
+To rebuild the report and its causal diagram:
 
 ```bash
 pip install -r requirements-report.txt
-python report/build_diagram.py   # regenerates results/figures/potential_outcomes_diagram.png
-python report/build_pdf.py       # renders report/report.md -> report/report.pdf
+python report/build_diagram.py
+python report/build_pdf.py
 ```
-
-## Summary of Findings
-
-Experiment A reproduces the paper's own result: Naive and Single-rewrite bias grow with confound strength while RATE stays flat near the true ATE.
-
-Experiment B shows that RATE's error is not affected by confound strength at all, but grows roughly linearly in the asymmetry parameter Δ, in a way that matches a closed-form bias prediction derived from the synthetic reward model. This bias is present regardless of confounding strength, meaning direction-asymmetry is a failure mode distinct from the one the paper tests, and one that its own diagnostics (comparing marginal reward distributions before and after a round-trip rewrite) would not necessarily catch.
-
-See `notebooks/rate_stress_test.ipynb` and `results/` for full detail.
 
 ---
 
 ## Authors
 
-Yuval Ratzabi
-
-Tuvia Hausdorff
+**Yuval Ratzabi**  
+**Tuvia Hausdorff**
 
 Final Project — *Causal Inference in the AI Era*
