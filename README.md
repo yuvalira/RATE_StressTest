@@ -234,7 +234,7 @@ Our simulation quantifies RATE's sensitivity to this violation. It does not clai
 
 ## Report
 
-The written report is available at [`report/report.pdf`](report/report.pdf).
+The written report is available at [`report/FinalProjectReport.pdf`](report/FinalProjectReport.pdf).
 
 To rebuild the report and its causal diagram:
 
